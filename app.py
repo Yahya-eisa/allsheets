@@ -152,7 +152,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-st.title("🔥 ECOMERG Orders Processor........")
+st.title("🔥 ECOMERG Orders Processor...")
 st.markdown("....ارفع الملفات يا رايق علشان تستلم الشيت")
 
 # Input for group name
@@ -228,5 +228,6 @@ if uploaded_files and group_name:
         )
 elif uploaded_files and not group_name:
     st.warning("⚠️ من فضلك اكتب اسم المجموعة أولاً")
+
 
 
