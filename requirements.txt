@@ -5,5 +5,5 @@ reportlab
 arabic-reshaper
 python-bidi
 pytz
-mega.py
 pycryptodome
+https://github.com/odwyersoftware/mega.py/archive/refs/heads/master.zip
