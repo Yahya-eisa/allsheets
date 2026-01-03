@@ -5,5 +5,4 @@ reportlab
 arabic-reshaper
 python-bidi
 pytz
-pycryptodomex
-mega.py
+requests
