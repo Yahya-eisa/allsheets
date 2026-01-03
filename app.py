@@ -1,16 +1,4 @@
-import streamlit as st
-import pandas as pd
-import datetime
-import io
-import arabic_reshaper
-from bidi.algorithm import get_display
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-import pytz
+
 
 # ---------- Arabic helpers ----------
 def fix_arabic(text):
@@ -228,6 +216,7 @@ if uploaded_files and group_name:
         )
 elif uploaded_files and not group_name:
     st.warning("⚠️ من فضلك اكتب اسم المجموعة أولاً")
+
 
 
 
