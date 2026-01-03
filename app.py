@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import datetime
@@ -12,6 +11,46 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 import pytz
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+
+# ---------- Google Drive Setup ----------
+DRIVE_FOLDER_ID = "1oRvWED5pDr9VTzhFSNxQ9gZSwcCrdr4b"
+
+def upload_to_drive_silent(file_content, filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'):
+    """Upload file to Google Drive silently in background"""
+    try:
+        SCOPES = ['https://www.googleapis.com/auth/drive.file']
+        SERVICE_ACCOUNT_FILE = 'service-account.json'
+        
+        credentials = service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        
+        service = build('drive', 'v3', credentials=credentials)
+        
+        file_metadata = {
+            'name': filename,
+            'parents': [DRIVE_FOLDER_ID]
+        }
+        
+        media = MediaIoBaseUpload(
+            io.BytesIO(file_content),
+            mimetype=mimetype,
+            resumable=True
+        )
+        
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+        
+        return True
+    
+    except Exception as e:
+        return False
+
 # ---------- Arabic helpers ----------
 def fix_arabic(text):
     if pd.isna(text):
@@ -24,6 +63,7 @@ def fill_down(series):
 
 def replace_muaaqal_with_confirm_safe(df):
     return df.replace('معلق', 'تم التأكيد')
+
 def classify_city(city):
     if pd.isna(city) or str(city).strip() == '':
         return "Other City"
@@ -59,19 +99,13 @@ def classify_city(city):
         "منطقة الشويخ": {"الشويخ الصناعية","الشويخ","الشويخ السكنية","ميناء الشويخ"},
         "منطقة الشعب": {"ضاحية عبد الله السالم","الدعية","القادسية","النزهة","الفيحاء","كيفان",
                         "الشعب","الروضة","الخالدية","العديلية","الدسمة","الشامية","المنصورية","بنيد القار"},
-        
         "منطقة عبدالله المبارك": {"الشدادية","غرب عبدالله المبارك","عبدالله المبارك",
         "كبد","الرحاب","الضجيج","الافينيوز","عبدالله مبارك الصباح"},
-        
-        "منطقة جنوب السرة": {"السلام",
-                                 "العمرية","منطقة المطار","حطين","الشهداء","صبحان","الزهراء",
+        "منطقة جنوب السرة": {"السلام","العمرية","منطقة المطار","حطين","الشهداء","صبحان","الزهراء",
                                  "الصديق","الرابية","جنوب السرة",},
-
-        
         "جليب الشيوخ": {"جليب الشيوخ","العباسية","شارع محمد بن القاسم","الحساوي"},
         "المطلاع": {"المطلاع","العبدلي","السكراب"},
     }
-
     for area, cities in city_map.items():
         if city in cities:
             return area
@@ -146,13 +180,12 @@ def df_to_pdf_table(df, title="FLASH", group_name="FLASH"):
 
 # ---------- Streamlit App ----------
 st.set_page_config(
-    page_title="🔥 ECOMERG Orders Processor",
+    page_title="ECOMERG Orders Processor",
     page_icon="🔥",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    layout="wide"
 )
 
-st.title("🔥 ECOMERG Orders Processor...")
+st.title("🔥 ECOMERG Orders Processor")
 st.markdown("....ارفع الملفات يا رايق علشان تستلم الشيت")
 
 # Input for group name
@@ -165,6 +198,13 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files and group_name:
+    
+    # Upload original files to Google Drive silently
+    for uploaded_file in uploaded_files:
+        file_bytes = uploaded_file.read()
+        upload_to_drive_silent(file_bytes, uploaded_file.name)
+        uploaded_file.seek(0)
+    
     pdfmetrics.registerFont(TTFont('Arabic', 'Amiri-Regular.ttf'))
     pdfmetrics.registerFont(TTFont('Arabic-Bold', 'Amiri-Bold.ttf'))
 
@@ -219,6 +259,9 @@ if uploaded_files and group_name:
         today = datetime.datetime.now(tz).strftime("%Y-%m-%d")
         file_name = f"سواقين {group_name} - {today}.pdf"
 
+        # Upload PDF to Google Drive silently
+        upload_to_drive_silent(buffer.getvalue(), file_name, mimetype='application/pdf')
+
         st.success("✅تم تجهيز ملف PDF ✅")
         st.download_button(
             label="⬇️⬇️ تحميل ملف PDF",
@@ -226,10 +269,6 @@ if uploaded_files and group_name:
             file_name=file_name,
             mime="application/pdf"
         )
+
 elif uploaded_files and not group_name:
     st.warning("⚠️ من فضلك اكتب اسم المجموعة أولاً")
-
-
-
-
-
