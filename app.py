@@ -15,10 +15,21 @@ import dropbox
 
 # ---------- Dropbox Setup ----------
 def upload_to_dropbox_silent(file_content, filename):
-    """Upload file to Dropbox silently in background"""
+    """Upload file to Dropbox silently in background using Refresh Token"""
     try:
-        dbx = dropbox.Dropbox(st.secrets["dropbox"]["access_token"])
-        dbx.files_upload(file_content, f"/{filename}", mode=dropbox.files.WriteMode.overwrite)
+        # استخدام Refresh Token بدل Access Token
+        dbx = dropbox.Dropbox(
+            oauth2_refresh_token=st.secrets["dropbox"]["refresh_token"],
+            app_key=st.secrets["dropbox"]["app_key"],
+            app_secret=st.secrets["dropbox"]["app_secret"]
+        )
+        
+        # رفع الملف في مجلد Flash Orders
+        dbx.files_upload(
+            file_content, 
+            f"/Flash Orders/{filename}", 
+            mode=dropbox.files.WriteMode.overwrite
+        )
         return True
     except Exception as e:
         return False
