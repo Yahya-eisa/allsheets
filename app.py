@@ -28,6 +28,7 @@ def replace_muaaqal_with_confirm_safe(df):
 def classify_city(city):
     if pd.isna(city) or str(city).strip() == '':
         return "Other City"
+        '''
     city = str(city).strip()
     city_map = {
         "منطقة صباح السالم": {"صباح السالم","العدان","المسيلة","أبو فطيرة","أبو الحصانية","مبارك الكبير",
@@ -71,6 +72,7 @@ def classify_city(city):
         "جليب الشيوخ": {"جليب الشيوخ","العباسية","شارع محمد بن القاسم","الحساوي"},
         "المطلاع": {"المطلاع","العبدلي","السكراب"},
     }
+    '''
     for area, cities in city_map.items():
         if city in cities:
             return area
